@@ -1,0 +1,83 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "settings": {
+        "padding_top": 28,
+        "padding_bottom": 28
+      }
+    },
+    "1645449111481ff2cd": {
+      "type": "featured-custom-product",
+      "blocks": {
+        "16454491109f64ebc4-0": {
+          "type": "text",
+          "settings": {
+            "text": "{{ section.settings.product.vendor }}",
+            "text_style": "uppercase"
+          }
+        },
+        "16454491109f64ebc4-1": {
+          "type": "title",
+          "settings": {}
+        },
+        "16454491109f64ebc4-2": {
+          "type": "text",
+          "settings": {
+            "text": "{{ section.settings.product.metafields.descriptors.subtitle.value }}",
+            "text_style": "subtitle"
+          }
+        },
+        "16454491109f64ebc4-3": {
+          "type": "price",
+          "settings": {}
+        },
+        "16454491109f64ebc4-4": {
+          "type": "variant_picker",
+          "settings": {
+            "picker_type": "button"
+          }
+        },
+        "16454491109f64ebc4-5": {
+          "type": "quantity_selector",
+          "settings": {}
+        },
+        "16454491109f64ebc4-6": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_dynamic_checkout": true
+          }
+        },
+        "16454491109f64ebc4-7": {
+          "type": "share",
+          "settings": {
+            "share_label": "Share"
+          }
+        }
+      },
+      "block_order": [
+        "16454491109f64ebc4-0",
+        "16454491109f64ebc4-1",
+        "16454491109f64ebc4-2",
+        "16454491109f64ebc4-3",
+        "16454491109f64ebc4-4",
+        "16454491109f64ebc4-5",
+        "16454491109f64ebc4-6",
+        "16454491109f64ebc4-7"
+      ],
+      "settings": {
+        "product": "the-personalised-game",
+        "color_scheme": "background-1",
+        "secondary_background": false,
+        "hide_variants": false,
+        "enable_video_looping": false,
+        "padding_top": 0,
+        "padding_bottom": 0
+      }
+    }
+  },
+  "order": [
+    "main",
+    "1645449111481ff2cd"
+  ]
+}
