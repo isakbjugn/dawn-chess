@@ -34,46 +34,9 @@
   <div class="page-width section-{{ section.id }}-padding{% if section.settings.secondary_background %} isolate{% endif %}">
     <div class="featured-product product grid grid--1-col gradient color-{{ section.settings.color_scheme }}{% if section.settings.secondary_background == false %} isolate{% endif %} {% if product.media.size > 0 %}grid--2-col-tablet{% else %}product--no-media{% endif %}">
       <div class="grid__item product__media-wrapper">
-        <media-gallery id="MediaGallery-{{ section.id }}" role="region" aria-label="{{ 'products.product.media.gallery_viewer' | t }}" data-desktop-layout="stacked">
-          <a class="skip-to-content-link button visually-hidden" href="#ProductInfo-{{ section.id }}">
-            {{ "accessibility.skip_to_product_info" | t }}
-          </a>
-          <div id="GalleryViewer-{{ section.id }}" class="product__media-list">
-            {%- if product.selected_or_first_available_variant.featured_media != null -%}
-              {%- assign media = product.selected_or_first_available_variant.featured_media -%}
-              <div class="product__media-item" data-media-id="{{ section.id }}-{{ media.id }}">
-                {% render 'product-thumbnail', media: media, position: 'featured', loop: section.settings.enable_video_looping, modal_id: section.id, xr_button: false, media_width: 0.5 %}
-              </div>
-            {%- endif -%}
-            {%- liquid
-              assign media_to_render = product.featured_media.id
-              for variant in product.variants
-                assign media_to_render = media_to_render | append: variant.featured_media.id | append: ' '
-              endfor
-            -%}
-            {%- for media in product.media -%}
-              {%- if media_to_render contains media.id and media.id != product.selected_or_first_available_variant.featured_media.id -%}
-                <div class="product__media-item" data-media-id="{{ section.id }}-{{ media.id }}">
-                  {% render 'product-thumbnail', media: media, position: forloop.index, loop: section.settings.enable_video_looping, modal_id: section.id, xr_button: false, media_width: 0.5 %}
-                </div>
-              {%- endif -%}
-            {%- endfor -%}
-          </div>
-          {%- if first_3d_model -%}
-            <button
-              class="button button--full-width product__xr-button"
-              type="button"
-              aria-label="{{ 'products.product.xr_button_label' | t }}"
-              data-shopify-xr
-              data-shopify-model3d-id="{{ first_3d_model.id }}"
-              data-shopify-title="{{ product.title | escape }}"
-              data-shopify-xr-hidden
-            >
-              {% render 'icon-3d-model' %}
-              {{ 'products.product.xr_button' | t }}
-            </button>
-          {%- endif -%}
-        </media-gallery>
+          
+        <div id="board" class="chessboard"></div>
+
       </div>
       <div class="product__info-wrapper grid__item">
         <div id="ProductInfo-{{ section.id }}" class="product__info-container">
@@ -271,8 +234,8 @@
           </div>
 
           <div>
-            <label class="form__label" for="custom-file">PGN or image file</label>
-            <input required type="file" id="custom-file" form="{{product_form_id}}" name="properties[Source file]" />
+            <label class="form__label" for="custom-file">PGN file</label>
+            <input type="file" id="custom-file" accept=".pgn" form="{{product_form_id}}" name="properties[Source file]" onchange="updateBoard(event)" />
           </div>
 
           <style> #shopify-section-{{ section.id }} .product__view-details { display:none; }</style>
@@ -513,6 +476,70 @@
 {% if product.media.size > 0 %}
   <script src="{{ 'media-gallery.js' | asset_url }}" defer="defer"></script>
 {% endif %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    drawBoard('')
+  }, false)
+  
+  async function updateBoard(event) {
+    const file = event.target.files.item(0)
+    const text = await file.text()
+    drawBoard(text)
+  }
+
+  function drawBoard(pgnStr) {
+    PGNV.pgnView('board', { pgn: pgnStr, pieceStyle: 'merida', boardSize: chessBoardWidth(), theme: 'blue' })
+  }
+</script>
+
+<script>
+  $('.featured-product').on('DOMSubtreeModified', '#boardInner', function() {
+    if ( $('.yellow').length ) {
+      const move = parseInt($('.yellow').parent().attr('id').replace('boardMoves', '')) + 1
+      const white = ( $('.yellow').parent().attr('class') === undefined ) ? false : true
+      setMoveText(move, white)
+    }
+  })
+
+  $('.featured-product').on('click', '#boardButtonprev', function() {
+    if ( $('.yellow').length ) {
+      return
+    }
+    resetMoveText()
+  })
+
+  $('.featured-product').on('click', '#boardButtonfirst', function() {
+    resetMoveText()
+  })
+
+  function resetMoveText() {
+    document.getElementById('custom-move').value = ''
+  }
+
+  function setMoveText(move, white) {
+    if (move === 0) {
+      resetMoveText()
+    }
+    else {
+      const moveStr = move.toString()
+      const colourStr = ( white ) ? 'White' : 'Black'
+      const movePair = ( white ) ? (move + 1) / 2 : move / 2
+      const movePairStr = movePair.toString()
+      document.getElementById('custom-move').value = movePairStr + '. ' + colourStr + ' (' + moveStr + ')'
+    }
+  }
+</script>
+
+<script>
+  function chessBoardWidth() {
+    const width = screen.width
+    if (width < 750) {
+      return (Math.round(width*0.09)*10 < 500 ? Math.round(width*0.09)*10 : 500)
+    }
+    return (Math.round(width*0.45) < 500 ? Math.round(width*0.45) : 500)
+  }
+</script>
 
 {% schema %}
 {
