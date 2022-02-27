@@ -15,6 +15,24 @@
     margin: auto
   }
 
+  ::file-selector-button {
+    border-width: 0;
+    background: rgb(140,162,173)
+    -webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.05),inset 0 -1px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.05),inset 0 -1px 0 rgba(0,0,0,0.2);
+  }
+
+  .column {
+    float: left;
+    width: 50%;
+  }
+
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+
   @media screen and (min-width: 750px) {
     .section-{{ section.id }}-padding {
       padding-top: {{ section.settings.padding_top }}px;
@@ -89,29 +107,38 @@
                 </div>
               {%- endif -%}
             {%- when 'quantity_selector' -%}
-              <div class="product-form__input product-form__quantity{% if settings.inputs_shadow_vertical_offset != 0 and settings.inputs_shadow_vertical_offset < 0 %} product-form__quantity-top{% endif %}" {{ block.shopify_attributes }}>
-                <label class="form__label" for="Quantity-{{ section.id }}">
-                  {{ 'products.product.quantity.label' | t }}
-                </label>
-                <quantity-input class="quantity">
-                  <button class="quantity__button no-js-hidden" name="minus" type="button">
-                    <span class="visually-hidden">{{ 'products.product.quantity.decrease' | t: product: product.title | escape }}</span>
-                    {% render 'icon-minus' %}
-                  </button>
-                  <input class="quantity__input"
-                      type="number"
-                      name="quantity"
-                      id="Quantity-{{ section.id }}"
-                      min="1"
-                      value="1"
-                      form="{{ product_form_id }}"
-                    >
-                  <button class="quantity__button no-js-hidden" name="plus" type="button">
-                    <span class="visually-hidden">{{ 'products.product.quantity.increase' | t: product: product.title | escape }}</span>
-                    {% render 'icon-plus' %}
-                  </button>
-                </quantity-input>
+              <div class="row">
+                <div class="column">
+                  <div class="product-form__input product-form__quantity{% if settings.inputs_shadow_vertical_offset != 0 and settings.inputs_shadow_vertical_offset < 0 %} product-form__quantity-top{% endif %}" {{ block.shopify_attributes }}>
+                    <label class="form__label" for="Quantity-{{ section.id }}">
+                      {{ 'products.product.quantity.label' | t }}
+                    </label>
+                    <quantity-input class="quantity">
+                      <button class="quantity__button no-js-hidden" name="minus" type="button">
+                        <span class="visually-hidden">{{ 'products.product.quantity.decrease' | t: product: product.title | escape }}</span>
+                        {% render 'icon-minus' %}
+                      </button>
+                      <input class="quantity__input"
+                          type="number"
+                          name="quantity"
+                          id="Quantity-{{ section.id }}"
+                          min="1"
+                          value="1"
+                          form="{{ product_form_id }}"
+                        >
+                      <button class="quantity__button no-js-hidden" name="plus" type="button">
+                        <span class="visually-hidden">{{ 'products.product.quantity.increase' | t: product: product.title | escape }}</span>
+                        {% render 'icon-plus' %}
+                      </button>
+                    </quantity-input>
+                  </div>
+                </div>
+                <div class="column" >
+                    <label class="form__label" for="custom-move">Selected move</label>
+                    <input class="field__input" style="border: solid 1px #7D7D7D; color: #363636" type="text" id="custom-move" form="{{product_form_id}}" name="properties[Selected move]" />
+                </div>
               </div>
+
             {%- when 'share' -%}
               <script src="{{ 'share.js' | asset_url }}" defer="defer"></script>
               <share-button id="Share-{{ section.id }}" class="share-button" {{ block.shopify_attributes }}>
@@ -226,25 +253,61 @@
                 </div>
               </noscript>
                   
-          <div class="product-form__input">
-            <label class="form__label" for="custom-name">Game title</label>
-            <input style="border: solid 1px #000" class="field__input" required type="text" id="custom-name" form="{{product_form_id}}" name="properties[Game title]" />
-          </div>
+              <div class="no-js-hidden" >
+                {%- assign game_source_option_name = "Game source" -%}
+                {%- assign game_sources = "Lichess,PGN" | split: ',' -%}
+                  <fieldset id="game-source-form" class="js product-form__input">
+                    <legend class="form__label">{{ game_source_option_name }}</legend>
+                    {%- for value in game_sources -%}
+                      <input type="radio" id="game-source-{{ value }}"
+                            name="{{ game_source_option_name }}"
+                            value="{{ value | escape }}"
+                            form="{{ product_form_id }}"
+                            {% if value == "Lichess" %}checked{% endif %}
+                            onclick="updateGameSourceField('{{ value }}')"
+                      >
+                      <label for="game-source-{{ value }}">
+                        {{ value }}
+                      </label>
+                    {%- endfor -%}
+                  </fieldset>
+                </div>
 
-          <div class="product-form__input">
-            <label class="form__label" for="custom-move">Selected move to illustrate (e.g. «White 37» or «Last»)</label>
-            <input style="border: solid 1px #000" class="field__input" required type="text" id="custom-move" form="{{product_form_id}}" name="properties[Selected move]" />
-          </div>
-
-          <div class="product-form__input">
-            <label class="form__label" for="custom-comments">Additional comments</label>
-            <input style="border: solid 1px #000" class="field__input" required type="text" id="custom-comments" form="{{product_form_id}}" name="properties[Comments]" />
-          </div>
-
-          <div>
-            <label class="form__label" for="custom-file">PGN file</label>
-            <input type="file" id="custom-file" accept=".pgn" form="{{product_form_id}}" name="properties[Source file]" onchange="updateBoard(event)" />
-          </div>
+            <div id="custom-options-form">
+              <div id="custom-game-source-lichess" class="product-form__input">
+                <label class="form__label" for="custom-link">Lichess link</label>
+                <input style="border: solid 1px #000" class="field__input" type="text" id="custom-link" form="{{product_form_id}}" name="properties[Source link]" />
+              </div>
+  
+              <div id="custom-game-source-pgn">
+                <label
+                  class="form__label"
+                  for="custom-file"
+                  style="
+                    display: inline-block;
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    margin-bottom: 4px;
+                    border-radius: 4px;
+                    background-color: rgb(140,162,173);
+                    color: #FFFFFF;
+                  "
+                >
+                <input style="display: none" type="file" id="custom-file" form="{{product_form_id}}" name="properties[Source file]" onchange="updateBoard(event)" />
+                  Upload PGN
+                </label>
+              </div>
+                      
+              <div class="product-form__input">
+                <label class="form__label" for="custom-name">Game title</label>
+                <input style="border: solid 1px #000" class="field__input" required type="text" id="custom-name" form="{{product_form_id}}" name="properties[Game title]" />
+              </div>
+  
+              <div class="product-form__input">
+                <label class="form__label" for="custom-comments">Additional comments</label>
+                <input style="border: solid 1px #000" class="field__input" required type="text" id="custom-comments" form="{{product_form_id}}" name="properties[Comments]" />
+              </div>
+            </div>
 
           <style> #shopify-section-{{ section.id }} .product__view-details { display:none; }</style>
           

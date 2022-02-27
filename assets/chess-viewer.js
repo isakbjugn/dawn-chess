@@ -4,13 +4,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function updateBoard(event) {
     const file = event.target.files.item(0)
+    const ext = await file.name.match(/\.([^\.]+)$/)[1]
+    switch ( ext ) {
+        case 'pgn':
+            break;
+        default:
+            alert('Please select a valid .pgn file')
+            wipeInputField()
+            return;
+    }
     const text = await file.text()
     drawBoard(text)
+    document.getElementById("custom-link").value = ''
+}
+
+function wipeInputField() {
+    const inputField = document.getElementById('custom-file')
+    inputField.value = ''
 }
 
 function drawBoard(pgnStr) {
+    resetMoveText()
     PGNV.pgnView('board', { pgn: pgnStr, pieceStyle: 'merida', boardSize: chessBoardWidth(), theme: 'blue' })
 }
+
+async function evalSourceLink(event) {
+    const text = event.target.value
+    if ( text.length < 28 ) { return }
+    if ( text.substring(0,20) === 'https://lichess.org/' ) {
+        const gameId = text.substring(20,28)
+        importGame(gameId)
+    }
+}
+
+async function importGame(gameId) {
+    const Url = 'https://lichess.org/game/export/' + gameId
+    $.get(Url, function(data, status) {
+        if (status === 'success') {
+            drawBoard(`${data}`)
+        }
+    })
+}
+
+const customLinkInputField = document.getElementById('custom-link')
+customLinkInputField.addEventListener('input', evalSourceLink)
+
 
 $('.featured-product').on('DOMSubtreeModified', '#boardInner', function() {
     if ( $('.yellow').length ) {
@@ -55,3 +93,18 @@ function chessBoardWidth() {
     }
     return (Math.round(width*0.45) < 500 ? Math.round(width*0.45) : 500)
 }
+
+function updateGameSourceField(gameSource) {
+    if (gameSource === "Lichess") {
+        document.getElementById("custom-game-source-lichess").classList.remove('hidden')
+        document.getElementById("custom-game-source-pgn").classList.add('hidden')
+    }
+    else {
+        document.getElementById("custom-game-source-lichess").classList.add('hidden')
+        document.getElementById("custom-game-source-pgn").classList.remove('hidden')
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateGameSourceField("Lichess")
+}, false)
